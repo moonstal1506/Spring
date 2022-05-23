@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberServiceTest {
-    
+
     MemberService memberService = new MemberServiceImpl();
 
     @Test
