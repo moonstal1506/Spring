@@ -33,11 +33,12 @@ public class Order {
 
     private LocalDateTime orderDate;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status; //주문상태 [ORDER, CANCEL]
 
     //연관관계 메서드
     public void setMember(Member member) {
-        this.member = new Member();
+        this.member = member;
         member.getOrders().add(this);
     }
 
@@ -52,7 +53,7 @@ public class Order {
     }
 
     //==생성 메서드==//
-    public static Order createOrder(Member member,Delivery delivery, OrderItem... orderItems){
+    public static Order createOrder(Member member, Delivery delivery, OrderItem... orderItems){
         Order order = new Order();
         order.setMember(member);
         order.setDelivery(delivery);
