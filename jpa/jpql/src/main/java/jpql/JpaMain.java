@@ -15,48 +15,46 @@ public class JpaMain {
         tx.begin();
         try {
 
+            Team team = new Team();
+            team.setName("teamA");
+            em.persist(team);
+
             Member member = new Member();
-            member.setUsername("m1");
+            member.setUsername("member");
             member.setAge(10);
+            member.changeTeam(team);
+
             em.persist(member);
+
 
             em.flush();
             em.clear();
 
-            List<Member> resultList = em.createQuery("select m from Member m", Member.class)
+            //페이징
+//            List<Member> resultList = em.createQuery("select m from Member m order by m.age desc", Member.class)
+//                    .setFirstResult(1).setMaxResults(10).getResultList();
+//
+//            for (Member member1 : resultList) {
+//                System.out.println("member1 = " + member1);
+//            }
+
+            //조인
+            String query = "select m from Member m inner join m.team t";
+            //where
+            String query1 = "select m from Member m inner join m.team t where t.name = :teamName";
+            //아우터
+            String query2 = "select m from Member m left join m.team t";
+            //세타
+            String query3 = "select m from Member m, Team t where m.username=t.name";
+            //조인대상 필터링
+            String query4 = "select m from Member m left join m.team t on t.name = 'teamA'";
+            //연관관계 없는 엔티티 외부조인
+            String query5 = "select m from Member m left join Team t on m.username = t.name";
+
+
+
+            List<Member> resultList2 = em.createQuery(query, Member.class)
                     .getResultList();
-
-            Member member1 = resultList.get(0);
-            member1.setAge(10);
-
-            //팀-조인
-            List<Team> resultList1 = em.createQuery("select t from Member m join m.team t", Team.class)
-                    .getResultList();
-
-            //임베디드
-            em.createQuery("select o.address from Order o", Address.class)
-                    .getResultList();
-
-            //스칼라
-            List resultList2 = em.createQuery("select distinct m.username, m.age from Member m")
-                    .getResultList();
-            Object o = resultList2.get(0);
-            Object[] result = (Object[]) o;
-
-            List<Object[]> resultList3 = em.createQuery("select distinct m.username, m.age from Member m")
-                    .getResultList();
-            Object[] result2 = resultList3.get(0);
-
-            System.out.println("username = " + result[0]);
-            System.out.println("age = " + result[1]);
-
-            //dto로 만들어
-            List<MemberDTO> resultList4 = em.createQuery("select new jpql.MemberDTO(m.username, m.age) from Member m", MemberDTO.class)
-                    .getResultList();
-            MemberDTO memberDTO = resultList4.get(0);
-            System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
-            System.out.println("memberDTO.getUsername() = " + memberDTO.getAge());
-
 
             tx.commit();
 
