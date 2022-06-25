@@ -21,7 +21,7 @@ public class JpaMain {
             em.persist(team);
 
             Member member = new Member();
-            member.setUsername("member");
+            member.setUsername("관리자");
             member.setAge(10);
             member.setType(MemberType.ADMIN);
             member.changeTeam(team);
@@ -32,22 +32,36 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-//            String query = "select m.username, 'HELLO', TRUE from Member m"+
-//                    "where m.type = jpql.MemberType.ADMIN";
-            String query = "select m.username, 'HELLO', true from Member m "+
-                        "where m.type = :userType";
+            //case
+            String query =
+                    "select "+
+                            "case when m.age <=10 then '학생요금' "+
+                            "     when m.age >=60 then '경로요금' "+
+                            "     else '일반요금' "+
+                            "end "+
+                        "from Member m";
 
-            String query2 = "select m.username, 'HELLO', true from Member m "+
-                    "where m.age = between 0 and 10";
+            //coalesce
+            String query1 = "select coalesce(m.username, '이름 없는 회원') from Member m";
 
-            List<Object[]> resultList = em.createQuery(query)
-                    .setParameter("userType",MemberType.ADMIN)
+            //nullif: 두값이 값으면 null
+            String query2 = "select nullif(m.username, '관리자') from Member m";
+
+            //기본함수
+            String query3 = "select concat('a' , 'b') from Member m";
+            String query4 = "select substring(m.username,2,3) from Member m";
+            String query5 = "select locate('de','abcdef') from Member m";//4
+            String query6 = "select size(t.members) from Team t";//4
+
+            //사용자 정의 함수
+            String query7 = "select function('group_concat', m.username) from Member m";
+            String query8 = "select group_concat(m.username) from Member m";
+
+            List<String> resultList = em.createQuery(query2)
                     .getResultList();
 
-            for (Object[] objects : resultList) {
-                System.out.println("objects = " + objects[0]);
-                System.out.println("objects = " + objects[1]);
-                System.out.println("objects = " + objects[2]);
+            for (String s : resultList) {
+                System.out.println("s = " + s);
             }
             tx.commit();
 
