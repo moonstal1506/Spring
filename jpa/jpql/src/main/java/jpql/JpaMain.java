@@ -16,15 +16,25 @@ public class JpaMain {
         tx.begin();
         try {
 
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team team1 = new Team();
+            team1.setName("team1");
+            em.persist(team1);
+
+            Team team2 = new Team();
+            team1.setName("team2");
+            em.persist(team2);
 
             Member member = new Member();
-            member.setUsername("관리자");
+            member.setUsername("회원1");
             member.setAge(10);
             member.setType(MemberType.ADMIN);
-            member.changeTeam(team);
+            member.changeTeam(team1);
+
+            Member member2 = new Member();
+            member.setUsername("회원2");
+            member.setAge(10);
+            member.setType(MemberType.ADMIN);
+            member.changeTeam(team2);
 
             em.persist(member);
 
@@ -32,37 +42,41 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            //case
-            String query =
-                    "select "+
-                            "case when m.age <=10 then '학생요금' "+
-                            "     when m.age >=60 then '경로요금' "+
-                            "     else '일반요금' "+
-                            "end "+
-                        "from Member m";
+            //페치조인
+            String query = "select distinct t from Team t join fetch m.members";
+            String query2 = "select m  from Member m join fetch m.team t";//방향뒤집어 해결
+            String query3 = "select t  from Team t";
 
-            //coalesce
-            String query1 = "select coalesce(m.username, '이름 없는 회원') from Member m";
-
-            //nullif: 두값이 값으면 null
-            String query2 = "select nullif(m.username, '관리자') from Member m";
-
-            //기본함수
-            String query3 = "select concat('a' , 'b') from Member m";
-            String query4 = "select substring(m.username,2,3) from Member m";
-            String query5 = "select locate('de','abcdef') from Member m";//4
-            String query6 = "select size(t.members) from Team t";//4
-
-            //사용자 정의 함수
-            String query7 = "select function('group_concat', m.username) from Member m";
-            String query8 = "select group_concat(m.username) from Member m";
-
-            List<String> resultList = em.createQuery(query2)
+            List<Team> resultList = em.createQuery(query,Team.class)
+                    .setFirstResult(0)
+                    .setMaxResults(1)
                     .getResultList();
 
-            for (String s : resultList) {
-                System.out.println("s = " + s);
+            //엔티티 직접 사용
+            String query4 = "select m from Member m where m = :member";
+            Member find = em.createQuery(query,Member.class)
+                    .setParameter("member",member)
+                    .getSingleResult();
+
+            String query5 = "select m from Member m where m.team = :team";
+            List<Member> members = em.createQuery(query, Member.class)
+                    .setParameter("team", team1)
+                    .getResultList();
+
+            //네임드 쿼리
+            List<Member> resultList1 = em.createNamedQuery("Member.findByUsername", Member.class)
+                    .setParameter("username", "회원1")
+                    .getResultList();
+
+            for (Team t : resultList) {
+//                System.out.println("mem.getUsername() = " + mem.getUsername()+","+mem.getTeam().getName());
             }
+
+            //벌크연산 flush 자동호출
+            int resultCount = em.createQuery("update Member m set m.age =20")
+                    .executeUpdate();
+            em.clear();
+
             tx.commit();
 
         } catch (Exception e) {
