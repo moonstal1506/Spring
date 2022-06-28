@@ -29,12 +29,21 @@ public class OrderSimpleApiController {
         }
         return all;
     }
+
     @GetMapping("/api/v2/simple-orders")
     private List<SimpleOrderDto> orderV2(){
         //Order2개
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
         return orders.stream()
                 .map(o->new SimpleOrderDto(o))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/api/v3/simple-orders")
+    private List<SimpleOrderDto> orderV3(){
+        List<Order> orders = orderRepository.findAllWithMemberDelivery();
+        return orders.stream()
+                .map((o -> new SimpleOrderDto(o)))
                 .collect(Collectors.toList());
     }
 
