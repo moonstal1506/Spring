@@ -20,6 +20,7 @@ public class Member {
     @NotEmpty
     private String name;
 
+    @JsonIgnore
     @Embedded
     private Address address;
 
