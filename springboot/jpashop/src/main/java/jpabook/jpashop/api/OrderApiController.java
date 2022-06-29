@@ -23,13 +23,13 @@ public class OrderApiController {
     private final OrderRepository orderRepository;
 
     @GetMapping("/api/v1/orders")
-    public List<Order> ordersV1(){
+    public List<Order> ordersV1() {
         List<Order> all = orderRepository.findAllByString(new OrderSearch());
         for (Order order : all) {
             order.getMember().getName();
             order.getDelivery().getAddress();
             List<OrderItem> orderItems = order.getOrderItems();
-            orderItems.stream().forEach(o->o.getItem().getName());
+            orderItems.stream().forEach(o -> o.getItem().getName());
         }
         return all;
     }
@@ -42,8 +42,16 @@ public class OrderApiController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/api/v3/orders")
+    public List<OrderDto> ordersV3() {
+        List<Order> orders = orderRepository.findAllWithItem();
+        return orders.stream()
+                .map(OrderDto::new)
+                .collect(Collectors.toList());
+    }
+
     @Data
-    static class OrderDto{
+    static class OrderDto {
         private Long orderId;
         private String name;
         private LocalDateTime orderDate; //주문시간
@@ -66,7 +74,7 @@ public class OrderApiController {
     }
 
     @Data
-    static class OrderItemDto{
+    static class OrderItemDto {
 
         private String itemName;
         private int orderPrice;
