@@ -228,11 +228,36 @@ class MemberRepositoryTest {
         em.flush();//문제해결
         em.clear();
 
-        List<Member> result = memberRepository.findByUsername("m5");
+        List<Member> result = memberRepository.findEntityGraphByUsername("m5");
         Member member5 = result.get(0);//영속성 40으로 남아있음 문제
         System.out.println("member5 = " + member5);
 
         //then
         assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void finMemberLazy() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member mem1 = new Member("mem1", 10, teamA);
+        Member mem2 = new Member("mem2", 20, teamB);
+        memberRepository.save(mem1);
+        memberRepository.save(mem2);
+        
+        em.flush();
+        em.clear();
+
+//        List<Member> members = memberRepository.findAll();
+//        List<Member> members = memberRepository.findMemberFetchJoin();
+        List<Member> members = memberRepository.findEntityGraphByUsername("mem1");
+
+
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+        }
     }
 }
