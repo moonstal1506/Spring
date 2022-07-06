@@ -4,10 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +35,7 @@ class MemberRepositoryTest {
     EntityManager em;
 
     @Test
-    public void testMember(){
+    public void testMember() {
         Member member = new Member("memberA");
         Member savedMember = memberRepository.save(member);
         Member findMember = memberRepository.findById(savedMember.getId()).get();
@@ -98,7 +95,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void testNamedQuery(){
+    public void testNamedQuery() {
         Member m1 = new Member("AAA", 10);
         Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
@@ -110,19 +107,19 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void testQuery(){
+    public void testQuery() {
         Member m1 = new Member("AAA", 10);
         Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
         memberRepository.save(m2);
 
-        List<Member> result = memberRepository.findUSer("AAA",10);
+        List<Member> result = memberRepository.findUSer("AAA", 10);
         Member findMember = result.get(0);
         assertThat(findMember).isEqualTo(m1);
     }
 
     @Test
-    public void findUsernameList(){
+    public void findUsernameList() {
         Member m1 = new Member("AAA", 10);
         Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
@@ -135,7 +132,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void findMemberDto(){
+    public void findMemberDto() {
         Team team = new Team("teamA");
         teamRepository.save(team);
 
@@ -150,7 +147,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void findByNames(){
+    public void findByNames() {
         Member m1 = new Member("AAA", 10);
         Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
@@ -163,7 +160,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void returnType(){
+    public void returnType() {
         Member m1 = new Member("AAA", 10);
         Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
@@ -215,6 +212,7 @@ class MemberRepositoryTest {
         assertThat(page.hasNext()).isTrue();
 
     }
+
     @Test
     void bulkUpdate() {
         //given
@@ -248,7 +246,7 @@ class MemberRepositoryTest {
         Member mem2 = new Member("mem2", 20, teamB);
         memberRepository.save(mem1);
         memberRepository.save(mem2);
-        
+
         em.flush();
         em.clear();
 
@@ -264,7 +262,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void queryHint(){
+    public void queryHint() {
         Member mem1 = new Member("mem1", 10);
         memberRepository.save(mem1);
         em.flush();
@@ -276,7 +274,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void lock(){
+    public void lock() {
         Member mem1 = new Member("mem1", 10);
         memberRepository.save(mem1);
         em.flush();
@@ -310,5 +308,34 @@ class MemberRepositoryTest {
 
         //then
         Assertions.assertThat(result.size()).isEqualTo(1);
+    }
+
+    @Test
+    void queryByExample() {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        //when
+//        memberRepository.findByUsername("m1");
+        //Probe
+        Member member = new Member("m1");
+        Team team = new Team("teamA");
+        member.setTeam(team);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnorePaths("age");
+
+        Example<Member> example = Example.of(member, matcher);
+        List<Member> result = memberRepository.findAll(example);
+        assertThat(result.get(0).getUsername()).isEqualTo("m1");
     }
 }
