@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.entity.Member;
+import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
@@ -94,5 +95,32 @@ class MemberRepositoryTest {
 
         assertThat(result.getSize()).isEqualTo(3);
         assertThat(result.getContent()).extracting("username").containsExactly("mem1", "mem2", "mem3");
+    }
+
+    @Test
+    void queryDslPredicateExecutorTest() {
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member mem1 = new Member("mem1", 10, teamA);
+        Member mem2 = new Member("mem2", 20, teamA);
+        Member mem3 = new Member("mem3", 30, teamB);
+        Member mem4 = new Member("mem4", 40, teamB);
+
+        em.persist(mem1);
+        em.persist(mem2);
+        em.persist(mem3);
+        em.persist(mem4);
+
+        QMember member = QMember.member;
+        Iterable<Member> result = memberRepository.findAll(
+                member.age.between(10, 40)
+                        .and(member.username.eq("mem1")));
+        for (Member findMember : result) {
+            System.out.println("member1 = " + findMember);
+        }
     }
 }
