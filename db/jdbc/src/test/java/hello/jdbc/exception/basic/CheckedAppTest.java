@@ -44,7 +44,7 @@ public class CheckedAppTest {
 
     static class Repository {
         public void call() throws SQLException {
-            throw new SQLException(new Exception());
+            throw new SQLException("ex");
         }
     }
 
